@@ -223,7 +223,7 @@ abstract class AbstractIbaseConnection implements Connection, ServerInfoAwareCon
 	 */
 	public function getActiveTransactionIbaseRes() {
 		if (!$this->ibaseConnectionRc || !is_resource($this->ibaseConnectionRc)) {
-			$this->ibaseConnectionRc = $this->getIbaseConnection($this->persistent);
+			$this->ibaseConnectionRc = $this->getIbaseConnection();
 			if (!is_resource($this->ibaseConnectionRc)) {
 				$this->checkLastApiCall();
 			}
@@ -239,12 +239,12 @@ abstract class AbstractIbaseConnection implements Connection, ServerInfoAwareCon
 		}
 	}
 
-	private function getIbaseConnection($persistent) {
-		if ($persistent) {
-			return @ibase_pconnect($this->dbs, $this->username, $this->password, $this->charset);
+	private function getIbaseConnection() {
+		if (!$this->persistent) {
+			return ibase_connect($this->dbs, $this->username, $this->password, $this->charset);
+		} else {
+			return ibase_pconnect($this->dbs, $this->username, $this->password, $this->charset);
 		}
-
-		return @ibase_connect($this->dbs, $this->username, $this->password, $this->charset);
 	}
 
 	/**
