@@ -105,6 +105,13 @@ abstract class AbstractIbaseConnection implements Connection, ServerInfoAwareCon
     protected $attrAutoCommit = true;
 
     /**
+     * Persistent connection
+     *
+     * @var boolean
+     */
+    protected $persistent = false;
+
+    /**
      * {@inheritDoc}
      * @param array  $params
      * @param string $username
@@ -124,6 +131,9 @@ abstract class AbstractIbaseConnection implements Connection, ServerInfoAwareCon
         $this->password = $password;
         if (isset($params['charset'])) {
             $this->charset = $params['charset'];
+        }
+        if(isset($params['persistent'])) {
+            $this->persistent = $params['persistent'];
         }
         foreach ($driverOptions as $k => $v) {
             $this->setAttribute($k, $v);
@@ -216,7 +226,7 @@ abstract class AbstractIbaseConnection implements Connection, ServerInfoAwareCon
     public function getActiveTransactionIbaseRes()
     {
         if (!$this->ibaseConnectionRc || !is_resource($this->ibaseConnectionRc)) {
-            $this->ibaseConnectionRc = @ibase_connect($this->dbs, $this->username, $this->password, $this->charset);
+            $this->ibaseConnectionRc = $this->getIbaseConnection();
             if (!is_resource($this->ibaseConnectionRc)) {
                 $this->checkLastApiCall();
             }
@@ -229,6 +239,14 @@ abstract class AbstractIbaseConnection implements Connection, ServerInfoAwareCon
         }
         if ($this->ibaseActiveTransactionRc && is_resource($this->ibaseActiveTransactionRc)) {
             return $this->ibaseActiveTransactionRc;
+        }
+    }
+
+    private function getIbaseConnection() {
+        if (!$this->persistent) {
+            return ibase_connect($this->dbs, $this->username, $this->password, $this->charset);
+        } else {
+            return ibase_pconnect($this->dbs, $this->username, $this->password, $this->charset);
         }
     }
 
