@@ -71,7 +71,12 @@ abstract class AbstractIbaseConnection implements Connection, ServerInfoAwareCon
     protected $charset = null;
 
     /**
-     * @var ressource ibase api connection ressource
+     * @var string Role
+     */
+    protected $role = null;
+
+    /**
+     * @var resource ibase api connection ressource
      */
     protected $ibaseConnectionRc;
 
@@ -81,7 +86,7 @@ abstract class AbstractIbaseConnection implements Connection, ServerInfoAwareCon
     protected $transactionDepth = 0;
 
     /**
-     * @var ressource Ressource of the active transaction. 
+     * @var resource Resource of the active transaction.
      */
     protected $ibaseActiveTransactionRc = null;
 
@@ -124,6 +129,9 @@ abstract class AbstractIbaseConnection implements Connection, ServerInfoAwareCon
         $this->password = $password;
         if (isset($params['charset'])) {
             $this->charset = $params['charset'];
+        }
+        if (isset($driverOptions['role'])) {
+            $this->role = $driverOptions['role'];
         }
         foreach ($driverOptions as $k => $v) {
             $this->setAttribute($k, $v);
@@ -216,7 +224,7 @@ abstract class AbstractIbaseConnection implements Connection, ServerInfoAwareCon
     public function getActiveTransactionIbaseRes()
     {
         if (!$this->ibaseConnectionRc || !is_resource($this->ibaseConnectionRc)) {
-            $this->ibaseConnectionRc = @ibase_connect($this->dbs, $this->username, $this->password, $this->charset);
+            $this->ibaseConnectionRc = @ibase_connect($this->dbs, $this->username, $this->password, $this->charset, null, null, $this->role);
             if (!is_resource($this->ibaseConnectionRc)) {
                 $this->checkLastApiCall();
             }
@@ -496,5 +504,4 @@ abstract class AbstractIbaseConnection implements Connection, ServerInfoAwareCon
             return array('code' => 0, 'message' => null);
         }
     }
-
 }
